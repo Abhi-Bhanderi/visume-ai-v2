@@ -1,0 +1,379 @@
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/**
+ * ──────────────────────────────────────────────
+ * Auth: NextAuth-compatible models (kept as-is)
+ * ──────────────────────────────────────────────
+ */
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String? // if you support credentials provider
+  role          UserRole  @default(USER)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+
+  // VRG ownership
+  resumes         Resume[]
+  jobDescriptions JobDescription[] // renamed from "jobs" to be explicit
+
+  @@map("users")
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+  @@map("verification_tokens")
+}
+
+/**
+ * ──────────────────────────────────────────────
+ * VRG / Parser / Matcher models with ownership
+ * ──────────────────────────────────────────────
+ */
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  FREELANCE
+  UNKNOWN
+}
+
+enum ProficiencyLevel {
+  NATIVE
+  FLUENT
+  PROFESSIONAL
+  INTERMEDIATE
+  BASIC
+}
+
+enum CertificationStatus {
+  ACTIVE
+  EXPIRED
+  IN_PROGRESS
+}
+
+enum SeniorityLevel {
+  JUNIOR
+  MID
+  SENIOR
+  LEAD
+  PRINCIPAL
+  UNKNOWN
+}
+
+model Resume {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Ownership
+  ownerUserId String?
+  owner       User?   @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
+
+  // Source
+  sourceFileName String?
+  sourceFileType String?
+  sourceUrl      String?
+
+  // Contact
+  fullName  String?
+  phone     String?
+  email     String?
+  linkedin  String?
+  github    String?
+  portfolio String?
+  location  String?
+
+  // Summary
+  summary         String?
+  summaryKeywords String[]
+
+  // Skills
+  hardSkills       String[]
+  softSkills       String[]
+  domainKnowledge  String[]
+  skillProficiency Json?
+
+  // Meta (1:1)
+  meta ResumeMeta?
+
+  // Rels
+  experiences     Experience[]
+  education       Education[]
+  certifications  Certification[]
+  projects        Project[]
+  publications    PublicationAward[]
+  languages       Language[]
+  additionalItems AdditionalItem[]
+
+  // Matches
+  matches MatchEvaluation[]
+
+  rawText String?
+
+  @@index([ownerUserId])
+  @@index([fullName])
+  @@index([email])
+}
+
+model ResumeMeta {
+  id       String @id @default(cuid())
+  resumeId String @unique
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  resumeLengthPages    Int?
+  bulletPointCount     Int?
+  keywordDensity       Json?
+  atsRisks             String[]
+  sectionPresenceFlags Json?
+  seniorityInference   SeniorityLevel @default(UNKNOWN)
+}
+
+model Experience {
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  jobTitle        String
+  normalizedTitle String?
+  company         String
+  industry        String?
+  location        String?
+  startDate       DateTime?
+  endDate         DateTime?
+  employmentType  EmploymentType @default(UNKNOWN)
+  durationMonths  Int?
+
+  responsibilities String[]
+  achievements     String[]
+  extractedSkills  String[]
+
+  orderIndex Int @default(0)
+
+  @@index([resumeId])
+  @@index([company])
+  @@index([jobTitle])
+  @@index([normalizedTitle])
+  @@index([startDate, endDate])
+}
+
+model Education {
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  degree         String
+  institution    String
+  location       String?
+  graduationDate DateTime?
+  honors         String?
+  gpa            String?
+  coursework     String[]
+
+  orderIndex Int @default(0)
+
+  @@index([resumeId])
+  @@index([institution])
+}
+
+model Certification {
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  name       String
+  authority  String?
+  issuedDate DateTime?
+  validUntil DateTime?
+  status     CertificationStatus @default(ACTIVE)
+
+  @@index([resumeId])
+  @@index([name])
+}
+
+model Project {
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  title        String
+  description  String?
+  technologies String[]
+  role         String?
+  outcomes     String[]
+
+  orderIndex Int @default(0)
+
+  @@index([resumeId])
+  @@index([title])
+}
+
+model PublicationAward {
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  title       String
+  authority   String?
+  date        DateTime?
+  description String?
+
+  @@index([resumeId])
+}
+
+model Language {
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  language    String
+  proficiency ProficiencyLevel
+
+  @@index([resumeId])
+  @@index([language])
+}
+
+model AdditionalItem {
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  category    String
+  title       String?
+  description String?
+
+  @@index([resumeId])
+  @@index([category])
+}
+
+model JobDescription {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Ownership
+  ownerUserId String?
+  owner       User?   @relation(fields: [ownerUserId], references: [id], onDelete: SetNull)
+
+  title         String
+  company       String?
+  location      String?
+  seniorityHint SeniorityLevel? @default(UNKNOWN)
+
+  // Original raw JD text (for traceability)
+  description String
+
+  // Parsed signals for faster matching
+  keywords         String[]
+  requiredSkills   String[]
+  preferredSkills  String[]
+  responsibilities String[]
+
+  matches MatchEvaluation[]
+
+  @@index([ownerUserId])
+  @@index([title])
+  @@index([company])
+}
+
+model MatchEvaluation {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  jobDescriptionId String
+  jobDescription   JobDescription @relation(fields: [jobDescriptionId], references: [id], onDelete: Cascade)
+
+  // Overall scores
+  matchingScore Int
+  atsScore      Int
+
+  // Category scores (JSON for forward-compat)
+  categoryScores Json // { qualifications_match, responsibilities_match, keyword_match, job_title_match, technical_skills, experience, soft_skills, domain_knowledge }
+
+  // Suggestions by priority
+  suggestions Json // { high_priority: string[], moderate_priority: string[], minor_priority: string[] }
+
+  matchedKeywords String[]
+  missingKeywords String[] // to be added in resume
+
+  synonymSuggestions Json? // { keyword: [synonyms...] }
+
+  gapAnalysis Json? // { hard_gaps: string[], partial_gaps: string[] }
+  atsFlags    String[]
+  strengths   String[]
+
+  // Deterministic hash of (resumeId + jobDescriptionId + version) to dedupe
+  dedupeHash String @unique
+
+  @@index([resumeId, jobDescriptionId])
+  @@index([matchingScore])
+  @@index([atsScore])
+}

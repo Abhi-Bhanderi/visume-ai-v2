@@ -1,0 +1,131 @@
+// lib/constants/keywords.constants.ts
+
+export const COMMON_TECH_KEYWORDS = [
+  // Programming Languages
+  "JavaScript",
+  "TypeScript",
+  "Python",
+  "Java",
+  "C\\+\\+",
+  "C#",
+  "Ruby",
+  "PHP",
+  "Swift",
+  "Kotlin",
+  "Go",
+  "Rust",
+  "Scala",
+  "R",
+
+  // Frontend
+  "React",
+  "Angular",
+  "Vue",
+  "Next\\.js",
+  "Nuxt",
+  "Svelte",
+  "HTML",
+  "CSS",
+  "SCSS",
+  "Tailwind",
+  "Bootstrap",
+  "Material-UI",
+  "Redux",
+  "MobX",
+
+  // Backend
+  "Node\\.js",
+  "Express",
+  "Django",
+  "Flask",
+  "FastAPI",
+  "Spring",
+  "ASP\\.NET",
+  "Laravel",
+  "Rails",
+  "GraphQL",
+  "REST",
+  "API",
+
+  // Databases
+  "SQL",
+  "PostgreSQL",
+  "MySQL",
+  "MongoDB",
+  "Redis",
+  "Elasticsearch",
+  "Oracle",
+  "SQLite",
+  "DynamoDB",
+  "Cassandra",
+
+  // Cloud & DevOps
+  "AWS",
+  "Azure",
+  "GCP",
+  "Docker",
+  "Kubernetes",
+  "Jenkins",
+  "GitLab",
+  "CircleCI",
+  "Terraform",
+  "Ansible",
+  "CI/CD",
+
+  // Tools & Platforms
+  "Git",
+  "GitHub",
+  "Jira",
+  "Confluence",
+  "Figma",
+  "Postman",
+  "VSCode",
+  "Linux",
+  "Unix",
+
+  // Methodologies
+  "Agile",
+  "Scrum",
+  "Kanban",
+  "TDD",
+  "BDD",
+  "Microservices",
+  "Serverless",
+
+  // AI/ML
+  "Machine Learning",
+  "Deep Learning",
+  "TensorFlow",
+  "PyTorch",
+  "Keras",
+  "scikit-learn",
+  "NLP",
+  "Computer Vision",
+  "AI",
+
+  // Mobile
+  "React Native",
+  "Flutter",
+  "iOS",
+  "Android",
+  "Xcode",
+
+  // Testing
+  "Jest",
+  "Mocha",
+  "Cypress",
+  "Selenium",
+  "Pytest",
+  "JUnit",
+
+  // Other
+  "Blockchain",
+  "Solidity",
+  "Web3",
+  "Ethereum",
+  "Security",
+  "OAuth",
+  "JWT",
+  "WebSocket",
+  "gRPC",
+];
