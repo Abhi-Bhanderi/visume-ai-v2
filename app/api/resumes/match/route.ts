@@ -1,21 +1,14 @@
 import { SYSTEM_MATCH } from "@/lib/constants/propmts";
-import { callOpenAIWithSchema, client, ValidationError } from "@/lib/openai";
+import { client } from "@/lib/openai";
 import { prisma } from "@/lib/prisma";
-import {
-  MatchingOutputSchema,
-  ResumeParserOutputSchema,
-} from "@/lib/zod-schema-core";
+import { ResumeParserOutputSchema } from "@/lib/zod-schema-core";
 import { NextResponse } from "next/server";
 import z from "zod";
-import zodToJsonSchema from "zod-to-json-schema";
-
-const MatchingInputSchema = z.object({
-  parsedResume: ResumeParserOutputSchema,
-  jobDescription: z.string().min(1),
-});
 
 export async function POST(request: Request) {
   const { parsedResume, jobDescription } = await request.json();
+  console.log("🚀 ~ POST ~ jobDescription:", jobDescription);
+  console.log("🚀 ~ POST ~ parsedResume:", parsedResume);
 
   if (!parsedResume || !jobDescription) {
     return NextResponse.json(
@@ -55,7 +48,6 @@ export async function POST(request: Request) {
   const match = await prisma.matchEvaluation.create({
     data: {
       resumeId: parsedResume.id,
-      jobDescriptionId: jobDescription.id,
       matchingScore: data.matching_score,
       atsScore: data.ats_score,
       categoryScores: data.category_scores,

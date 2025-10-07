@@ -3,8 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import ResumeCard from "@/components/resume-card";
-import { TailorResumeDialog } from "@/components/tailor-resume-dialog";
+import ResumeCard from "@/components/resumes/resume-card";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/utils";
 import { Briefcase, ExternalLink, TrendingUp, Sparkles } from "lucide-react";
@@ -75,7 +74,7 @@ export default async function JobDetailPage({ params }: PageProps) {
     },
   });
 
-  const parsedData = job.parsedData as any;
+  const parsedData = job.parsedData as { responsibilities?: string[]; skills?: string[] } | null;
   const mustHaveReqs = job.requirements.filter((r) => r.importance === "must_have");
   const niceToHaveReqs = job.requirements.filter((r) => r.importance === "nice_to_have");
 
@@ -163,20 +162,6 @@ export default async function JobDetailPage({ params }: PageProps) {
                             job={job}
                             hasMatches={hasMatches}
                           />
-                          {hasMatches && (
-                            <TailorResumeDialog
-                              resumeId={resume.id}
-                              jobId={job.id}
-                              resumeName={resume.fileName}
-                              jobTitle={`${job.title} at ${job.company}`}
-                              trigger={
-                                <Button variant="outline" className="w-full">
-                                  <Sparkles className="w-4 h-4 mr-2" />
-                                  AI Tailor Resume
-                                </Button>
-                              }
-                            />
-                          )}
                         </div>
                       );
                     })}

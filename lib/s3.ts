@@ -82,7 +82,7 @@ export async function downloadFile(key: string): Promise<Buffer> {
   // Convert the stream to buffer
   const chunks: Uint8Array[] = [];
   if (response.Body) {
-    // @ts-ignore - Body is a stream
+    // @ts-expect-error - Body is a stream
     for await (const chunk of response.Body) {
       chunks.push(chunk);
     }

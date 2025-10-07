@@ -49,7 +49,7 @@ export async function saveResumeData(
       data: {
         rawText,
         parserVersion: PARSER_VERSION,
-        sectionsJson: parsedSections as any,
+        sectionsJson: parsedSections as Record<string, unknown>,
       },
     });
     console.log("✅ Resume updated with raw text");

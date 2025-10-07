@@ -1,4 +1,4 @@
-import ResumeDetails, { ResumeData } from "@/components/resumes/resume-details";
+import ResumeDetails from "@/components/resumes/resume-details";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
@@ -17,12 +17,22 @@ export default async function page({
   }
 
   const resume = await prisma.resume.findUnique({
-    where: { id, userId: session?.user.id },
+    where: { id, ownerUserId: session.user.id },
+    include: {
+      experiences: true,
+      additionalItems: true,
+      certifications: true,
+      education: true,
+      meta: true,
+      projects: true,
+      publications: true,
+      languages: true,
+    },
   });
 
   if (!resume) {
     redirect("/dashboard/resumes");
   }
 
-  return <ResumeDetails resume={resume as unknown as ResumeData} />;
+  return <ResumeDetails resume={resume} />;
 }

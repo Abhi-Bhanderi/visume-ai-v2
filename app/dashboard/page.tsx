@@ -2,6 +2,16 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default async function Page() {
   const session = await getServerSession(authOptions);
@@ -14,20 +24,19 @@ export default async function Page() {
     where: { ownerUserId: session.user.id },
     orderBy: { createdAt: "desc" },
   });
-  console.log("🚀 ~ Page ~ resumes:", resumes);
 
   if (resumes.length === 0) {
     redirect("/initial");
   }
 
   return (
-    <div className="grid grid-cols-1 container mx-auto md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {resumes.map((resume) => (
-        <div key={resume.id}>
-          <h2>{resume.fullName}</h2>
-          <iframe src={resume.sourceUrl ?? ""} />
-        </div>
-      ))}
+    <div className="grid h-screen place-content-center gap-5 text-center">
+      <p className="text-gray-500">
+        This Page is under maintenance, Try visiting resumes.{" "}
+      </p>
+      <Link href="/dashboard/resumes">
+        <Button>View resumes</Button>
+      </Link>
     </div>
   );
 }

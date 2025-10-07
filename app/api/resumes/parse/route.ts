@@ -8,20 +8,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import zodToJsonSchema from "zod-to-json-schema";
 
-const ResumeParserInputSchema = z.object({
-  resumeText: z.string().min(1),
-});
-
 export async function POST(req: NextRequest) {
   try {
     const { resumeId, resumeText } = await req.json();
 
-    if (resumeId || !resumeText) {
+    if (!resumeId || !resumeText) {
       return NextResponse.json(
-        {
-          ok: false,
-          error: "resumeId, resumeText and jobDescription required",
-        },
+        { ok: false, error: "resumeId and resumeText required" },
         { status: 400 }
       );
     }
@@ -33,18 +26,36 @@ export async function POST(req: NextRequest) {
         { role: "user", content: resumeText },
       ],
     });
-    console.log("🚀 ~ POST ~ response:", response);
 
     const content = response.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("OpenAI returned no response");
-    }
+    if (!content) throw new Error("OpenAI returned no response");
 
-    // Parse and validate output
-    const parsedJson = JSON.parse(content);
-    console.log("🚀 ~ POST ~ parsedJson:", parsedJson);
+    let parsedJson;
+    try {
+      parsedJson = JSON.parse(content.trim());
+    } catch {
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      parsedJson = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
+    }
+    if (!parsedJson) throw new Error("Invalid JSON in model response");
 
     const parsed = parsedJson;
+
+    // safeDate helper
+    const safeDate = (str?: string): Date | null => {
+      if (!str || str.toLowerCase() === "present") return null;
+      try {
+        const normalized = /^\d{4}-\d{2}$/.test(str)
+          ? str + "-01"
+          : /^\w+\s\d{4}$/.test(str)
+            ? new Date(str).toISOString().slice(0, 10)
+            : str;
+        const date = new Date(normalized);
+        return isNaN(date.getTime()) ? null : date;
+      } catch {
+        return null;
+      }
+    };
 
     const resume = await prisma.resume.update({
       where: { id: resumeId },
@@ -79,11 +90,9 @@ export async function POST(req: NextRequest) {
             company: e.company,
             industry: e.industry ?? null,
             location: e.location ?? null,
-            startDate: e.start_date ? new Date(e.start_date + "-01") : null,
-            endDate:
-              e.end_date && e.end_date !== "Present"
-                ? new Date(e.end_date + "-01")
-                : null,
+            startDate: safeDate(e.start_date),
+            endDate: safeDate(e.end_date),
+
             employmentType: e.employment_type ?? "UNKNOWN",
             durationMonths: e.duration_months ?? null,
             responsibilities: e.responsibilities ?? [],
@@ -97,13 +106,7 @@ export async function POST(req: NextRequest) {
             degree: ed.degree,
             institution: ed.institution,
             location: ed.location ?? null,
-            graduationDate: ed.graduation_date
-              ? new Date(
-                  ed.graduation_date.length === 7
-                    ? ed.graduation_date + "-01"
-                    : ed.graduation_date + "-01-01"
-                )
-              : null,
+            graduationDate: safeDate(ed.graduation_date),
             honors: ed.honors ?? null,
             gpa: ed.gpa ?? null,
             coursework: ed.coursework ?? [],
@@ -114,11 +117,7 @@ export async function POST(req: NextRequest) {
           create: (parsed.certifications ?? []).map((c: any) => ({
             name: c.name,
             authority: c.authority ?? null,
-            issuedDate: c.date
-              ? new Date(
-                  c.date.length === 7 ? c.date + "-01" : c.date + "-01-01"
-                )
-              : null,
+            issuedDate: safeDate(c.date),
             validUntil: c.valid_until
               ? new Date(
                   c.valid_until.length === 7
@@ -143,7 +142,7 @@ export async function POST(req: NextRequest) {
           create: (parsed.publications_awards ?? []).map((a: any) => ({
             title: a.title,
             authority: a.authority ?? null,
-            date: a.date ? new Date(a.date) : null,
+            date: safeDate(a.date),
             description: a.description ?? null,
           })),
         },

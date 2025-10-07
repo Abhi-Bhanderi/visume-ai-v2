@@ -8,13 +8,8 @@ export default function Home() {
     <div className="min-h-screen w-full relative">
       {/* Diagonal Fade Grid Background - Top Right */}
       <div
-        className="absolute inset-0 z-0"
+        className="absolute inset-0 z-0 [background-size:32px_32px] [background-image:linear-gradient(to_right,rgb(209_213_219)_1px,transparent_1px),linear-gradient(to_bottom,rgb(209_213_219)_1px,transparent_1px)] dark:[background-image:linear-gradient(to_right,rgb(55_65_81)_1px,transparent_1px),linear-gradient(to_bottom,rgb(55_65_81)_1px,transparent_1px)]"
         style={{
-          backgroundImage: `
-        linear-gradient(to right, #d1d5db 1px, transparent 1px),
-        linear-gradient(to bottom, #d1d5db 1px, transparent 1px)
-      `,
-          backgroundSize: "32px 32px",
           WebkitMaskImage:
             "radial-gradient(ellipse 80% 80% at 100% 0%, #000 50%, transparent 90%)",
           maskImage:

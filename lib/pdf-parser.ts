@@ -195,7 +195,14 @@ export function extractContactInfo(text: string): {
   github?: string;
   website?: string;
 } {
-  const contact: any = {};
+  const contact: {
+    email?: string;
+    phone?: string;
+    location?: string;
+    linkedin?: string;
+    github?: string;
+    website?: string;
+  } = {};
 
   // Email regex
   const emailMatch = text.match(

@@ -27,6 +27,7 @@ export default function InitialSetupPage() {
   const [resumeAndJobDetails, setResumeAndJobDetails] = useState<DetailsType>(
     {} as DetailsType
   );
+
   console.log(
     "🚀 ~ InitialSetupPage ~ resumeAndJobDetails:",
     resumeAndJobDetails
